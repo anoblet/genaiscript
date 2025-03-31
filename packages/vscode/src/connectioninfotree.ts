@@ -4,10 +4,11 @@ import { YAMLStringify } from "../../core/src/yaml"
 import {
     LanguageModelInfo,
     ResolvedLanguageModelConfiguration,
-    ServerEnvResponse,
+    ServerEnvResponse
 } from "../../core/src/server/messages"
 import { deleteUndefinedValues } from "../../core/src/cleaners"
 import { registerCommand } from "./commands"
+import { checkDirectoryExists, readFileText } from "./fs"
 
 interface ConnectionInfoTreeData {
     provider?: ResolvedLanguageModelConfiguration
@@ -33,6 +34,22 @@ class ConnectionInfoTreeDataProvider
     private async fetchConnections() {
         const client = await this.state.host.server.client()
         this._info = await client.infoEnv()
+
+        // Check for git submodules
+        const workspaceFolders = vscode.workspace.workspaceFolders
+        if (workspaceFolders) {
+            for (const folder of workspaceFolders) {
+                const gitmodulesPath = vscode.Uri.joinPath(folder.uri, ".gitmodules")
+                if (await checkDirectoryExists(gitmodulesPath)) {
+                    const gitmodulesContent = await readFileText(gitmodulesPath)
+                    if (gitmodulesContent) {
+                        // Process the .gitmodules content if needed
+                        console.log("Found .gitmodules:", gitmodulesContent)
+                    }
+                }
+            }
+        }
+
         this.refresh()
     }
 

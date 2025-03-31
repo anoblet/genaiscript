@@ -3,7 +3,24 @@ import { Utils } from "vscode-uri"
 import { JSON5TryParse } from "../../core/src/json5"
 
 export async function findFiles(pattern: string) {
-    return (await vscode.workspace.findFiles(pattern)).map((f) => f.fsPath)
+    const files = (await vscode.workspace.findFiles(pattern)).map((f) => f.fsPath)
+
+    // Check for git submodules
+    const workspaceFolders = vscode.workspace.workspaceFolders
+    if (workspaceFolders) {
+        for (const folder of workspaceFolders) {
+            const gitmodulesPath = vscode.Uri.joinPath(folder.uri, ".gitmodules")
+            if (await checkFileExists(gitmodulesPath)) {
+                const gitmodulesContent = await readFileText(gitmodulesPath)
+                if (gitmodulesContent) {
+                    // Process the .gitmodules content if needed
+                    console.log("Found .gitmodules:", gitmodulesContent)
+                }
+            }
+        }
+    }
+
+    return files
 }
 
 export async function saveAllTextDocuments() {

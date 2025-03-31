@@ -391,6 +391,22 @@ export class ExtensionState extends EventTarget {
                 performance.mark(`scan-tools`)
                 const client = await this.host.server.client()
                 const newProject = await client.listScripts()
+
+                // Check for git submodules
+                const workspaceFolders = vscode.workspace.workspaceFolders
+                if (workspaceFolders) {
+                    for (const folder of workspaceFolders) {
+                        const gitmodulesPath = vscode.Uri.joinPath(folder.uri, ".gitmodules")
+                        if (await checkFileExists(gitmodulesPath)) {
+                            const gitmodulesContent = await readFileText(gitmodulesPath)
+                            if (gitmodulesContent) {
+                                // Process the .gitmodules content if needed
+                                console.log("Found .gitmodules:", gitmodulesContent)
+                            }
+                        }
+                    }
+                }
+
                 await this.setProject(newProject)
                 this.setDiagnostics()
                 logMeasure(`project`, `project-start`, `project-end`)
@@ -410,6 +426,21 @@ export class ExtensionState extends EventTarget {
         token?: vscode.CancellationToken
     ): Promise<Fragment> {
         const files = await listFiles(uri)
+
+        // Check for git submodules
+        const workspaceFolders = vscode.workspace.workspaceFolders
+        if (workspaceFolders) {
+            for (const folder of workspaceFolders) {
+                const gitmodulesPath = vscode.Uri.joinPath(folder.uri, ".gitmodules")
+                if (await checkFileExists(gitmodulesPath)) {
+                    const gitmodulesContent = await readFileText(gitmodulesPath)
+                    if (gitmodulesContent) {
+                        // Process the .gitmodules content if needed
+                        console.log("Found .gitmodules:", gitmodulesContent)
+                    }
+                }
+            }
+        }
 
         return <Fragment>{
             files: files.map((fs) => fs.fsPath),

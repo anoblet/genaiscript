@@ -90,7 +90,13 @@ export async function activate(context: ExtensionContext) {
                     }
                 )
             }
-        )
+        ),
+        registerCommand("genaiscript.submodule.refresh", async () => {
+            await state.parseWorkspace()
+            await vscode.window.showInformationMessage(
+                `${TOOL_NAME} - Submodule refreshed.`
+            )
+        })
     )
 
     await state.activate()
